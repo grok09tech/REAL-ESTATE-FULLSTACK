@@ -47,6 +47,26 @@ export type Database = {
           created_at?: string;
         };
       };
+      locations: {
+        Row: {
+          id: string;
+          name: string;
+          hierarchy: any;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          hierarchy: any;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          hierarchy?: any;
+          created_at?: string;
+        };
+      };
       plots: {
         Row: {
           id: string;
@@ -58,7 +78,7 @@ export type Database = {
           image_urls: string[] | null;
           usage_type: string | null;
           status: 'available' | 'locked' | 'pending_payment' | 'sold';
-          council_id: number | null;
+          location_id: string | null;
           geom: any;
           uploaded_by_id: string | null;
           created_at: string;
@@ -73,7 +93,7 @@ export type Database = {
           image_urls?: string[] | null;
           usage_type?: string | null;
           status?: 'available' | 'locked' | 'pending_payment' | 'sold';
-          council_id?: number | null;
+          location_id?: string | null;
           geom?: any;
           uploaded_by_id?: string | null;
           created_at?: string;
@@ -88,9 +108,32 @@ export type Database = {
           image_urls?: string[] | null;
           usage_type?: string | null;
           status?: 'available' | 'locked' | 'pending_payment' | 'sold';
-          council_id?: number | null;
+          location_id?: string | null;
           geom?: any;
           uploaded_by_id?: string | null;
+          created_at?: string;
+        };
+      };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string;
+          plot_id: string;
+          order_status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plot_id: string;
+          order_status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          plot_id?: string;
+          order_status?: string;
           created_at?: string;
         };
       };

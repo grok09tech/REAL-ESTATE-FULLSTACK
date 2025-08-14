@@ -9,6 +9,22 @@ export interface User {
   created_at: string;
 }
 
+export interface Location {
+  id: string;
+  name: string;
+  hierarchy: LocationHierarchy;
+  created_at: string;
+}
+
+export interface LocationHierarchy {
+  region: string;
+  districts: {
+    [districtName: string]: {
+      councils: string[];
+    };
+  };
+}
+
 export interface Plot {
   id: string;
   plot_number?: string;
@@ -19,31 +35,12 @@ export interface Plot {
   image_urls?: string[];
   usage_type?: string;
   status: 'available' | 'locked' | 'pending_payment' | 'sold';
-  council_id?: number;
+  location_id?: string;
   geom?: any;
   uploaded_by_id?: string;
   created_at: string;
-  council?: Council;
-  locked_until?: string; // For cart locking mechanism
-}
-
-export interface Region {
-  id: number;
-  name: string;
-}
-
-export interface District {
-  id: number;
-  name: string;
-  region_id: number;
-  region?: Region;
-}
-
-export interface Council {
-  id: number;
-  name: string;
-  district_id: number;
-  district?: District;
+  location?: Location;
+  locked_until?: string;
 }
 
 export interface Order {
@@ -75,4 +72,10 @@ export interface RegisterData {
 export interface CartItem {
   plot: Plot;
   addedAt: Date;
+}
+
+export interface Language {
+  code: 'en' | 'sw';
+  name: string;
+  nativeName: string;
 }

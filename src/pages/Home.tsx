@@ -5,7 +5,8 @@ import { PlotDetailsModal } from '../components/Plots/PlotDetailsModal';
 import { SearchFilters, SearchFilters as SearchFiltersType } from '../components/Plots/SearchFilters';
 import { MapView } from '../components/Map/MapView';
 import { Plot } from '../types';
-import { apiService } from '../services/api';
+import { supabaseApiService } from '../services/supabaseApi';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Map, Grid } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -13,6 +14,7 @@ export const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [selectedPlot, setSelectedPlot] = useState<Plot | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchPlots();
@@ -30,13 +32,11 @@ export const Home: React.FC = () => {
         if (filters.maxPrice < 10000000) searchParams.max_price = filters.maxPrice;
         if (filters.minArea > 0) searchParams.min_area = filters.minArea;
         if (filters.maxArea < 10000) searchParams.max_area = filters.maxArea;
-        if (filters.councilId) searchParams.council_id = filters.councilId;
-        if (filters.districtId) searchParams.district_id = filters.districtId;
-        if (filters.regionId) searchParams.region_id = filters.regionId;
+        if (filters.locationId) searchParams.location_id = filters.locationId;
         if (filters.usageType) searchParams.usage_type = filters.usageType;
       }
 
-      const data = await apiService.getPlots(searchParams);
+      const data = await supabaseApiService.getPlots(searchParams);
       setPlots(data);
     } catch (error) {
       console.error('Error fetching plots:', error);
@@ -62,12 +62,8 @@ export const Home: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Find Your Perfect Plot in Tanzania
-          </h1>
-          <p className="text-gray-600">
-            Discover available land plots across Tanzania with our interactive platform
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('home.title')}</h1>
+          <p className="text-gray-600">{t('home.subtitle')}</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -81,7 +77,7 @@ export const Home: React.FC = () => {
             {/* View Toggle */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
-                <span className="text-gray-700">Found {plots.length} plots</span>
+                <span className="text-gray-700">{t('home.found_plots', { count: plots.length })}</span>
               </div>
               
               <div className="flex items-center space-x-2">

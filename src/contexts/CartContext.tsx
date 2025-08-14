@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Plot, CartItem } from '../types';
-import { apiService } from '../services/api';
+import { supabaseApiService } from '../services/supabaseApi';
 import { useNotifications } from '../components/Notifications/NotificationService';
 
 interface CartContextType {
@@ -35,7 +35,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     if (!isInCart(plot.id)) {
       try {
         // Lock the plot on the server
-        await apiService.lockPlot(plot.id);
+        await supabaseApiService.lockPlot(plot.id);
         
       setItems(prev => [...prev, { plot, addedAt: new Date() }]);
         
@@ -58,7 +58,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const removeFromCart = async (plotId: string) => {
     try {
       // Unlock the plot on the server
-      await apiService.unlockPlot(plotId);
+      await supabaseApiService.unlockPlot(plotId);
       
       addNotification({
         type: 'info',
@@ -76,7 +76,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // Unlock all plots in cart
     for (const item of items) {
       try {
-        await apiService.unlockPlot(item.plot.id);
+        await supabaseApiService.unlockPlot(item.plot.id);
       } catch (error) {
         console.error('Error unlocking plot:', error);
       }

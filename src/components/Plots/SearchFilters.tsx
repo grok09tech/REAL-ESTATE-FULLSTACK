@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, DollarSign, Square } from 'lucide-react';
-import { apiService } from '../../services/api';
-import { Region, District, Council } from '../../types';
+import { supabaseApiService } from '../../services/supabaseApi';
+import { Location } from '../../types';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SearchFiltersProps {
   onFiltersChange: (filters: SearchFilters) => void;
@@ -13,13 +14,12 @@ export interface SearchFilters {
   maxPrice: number;
   minArea: number;
   maxArea: number;
-  regionId?: number;
-  districtId?: number;
-  councilId?: number;
+  locationId?: string;
   usageType?: string;
 }
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange }) => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<SearchFilters>({
     search: '',
     minPrice: 0,
@@ -28,70 +28,24 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange })
     maxArea: 10000,
   });
 
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [councils, setCouncils] = useState<Council[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchRegions();
+    fetchLocations();
   }, []);
 
-  useEffect(() => {
-    if (filters.regionId) {
-      fetchDistricts(filters.regionId);
-    } else {
-      setDistricts([]);
-      setCouncils([]);
-    }
-  }, [filters.regionId]);
-
-  useEffect(() => {
-    if (filters.districtId) {
-      fetchCouncils(filters.districtId);
-    } else {
-      setCouncils([]);
-    }
-  }, [filters.districtId]);
-
-  const fetchRegions = async () => {
+  const fetchLocations = async () => {
     try {
-      const data = await apiService.getRegions();
-      setRegions(data);
+      const data = await supabaseApiService.getLocations();
+      setLocations(data);
     } catch (error) {
-      console.error('Error fetching regions:', error);
-    }
-  };
-
-  const fetchDistricts = async (regionId: number) => {
-    try {
-      const data = await apiService.getDistricts(regionId);
-      setDistricts(data);
-    } catch (error) {
-      console.error('Error fetching districts:', error);
-    }
-  };
-
-  const fetchCouncils = async (districtId: number) => {
-    try {
-      const data = await apiService.getCouncils(districtId);
-      setCouncils(data);
-    } catch (error) {
-      console.error('Error fetching councils:', error);
+      console.error('Error fetching locations:', error);
     }
   };
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
     const newFilters = { ...filters, [key]: value };
-    
-    // Reset dependent filters
-    if (key === 'regionId') {
-      newFilters.districtId = undefined;
-      newFilters.councilId = undefined;
-    } else if (key === 'districtId') {
-      newFilters.councilId = undefined;
-    }
-    
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -103,7 +57,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange })
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('search.title')}</h3>
       
       <form onSubmit={handleSearch} className="space-y-4">
         {/* Search Input */}
@@ -111,7 +65,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange })
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search plots by title or description..."
+            placeholder={t('search.placeholder')}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -119,12 +73,99 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange })
         </div>
 
         {/* Location Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.region')}</label>
+          <select
+            value={filters.locationId || ''}
+            onChange={(e) => handleFilterChange('locationId', e.target.value || undefined)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">{t('search.all_regions')}</option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          {t('search.apply_filters')}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+        </div>
+
+        {/* Price Range */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-            <select
-              value={filters.regionId || ''}
-              onChange={(e) => handleFilterChange('regionId', e.target.value ? parseInt(e.target.value) : undefined)}
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.min_price')}</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="number"
+                value={filters.minPrice}
+                onChange={(e) => handleFilterChange('minPrice', parseInt(e.target.value) || 0)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.max_price')}</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="number"
+                value={filters.maxPrice}
+                onChange={(e) => handleFilterChange('maxPrice', parseInt(e.target.value) || 10000000)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Area Range */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.min_area')}</label>
+            <div className="relative">
+              <Square className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="number"
+                value={filters.minArea}
+                onChange={(e) => handleFilterChange('minArea', parseInt(e.target.value) || 0)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.max_area')}</label>
+            <div className="relative">
+              <Square className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="number"
+                value={filters.maxArea}
+                onChange={(e) => handleFilterChange('maxArea', parseInt(e.target.value) || 10000)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Usage Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('search.usage_type')}</label>
+          <select
+            value={filters.usageType || ''}
+            onChange={(e) => handleFilterChange('usageType', e.target.value || undefined)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">All Regions</option>
@@ -237,12 +278,11 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ onFiltersChange })
             onChange={(e) => handleFilterChange('usageType', e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">All Types</option>
-            <option value="Residential">Residential</option>
-            <option value="Commercial">Commercial</option>
-            <option value="Industrial">Industrial</option>
-            <option value="Agricultural">Agricultural</option>
-          </select>
+            <option value="">{t('search.all_types')}</option>
+            <option value="Residential">{t('usage.residential')}</option>
+            <option value="Commercial">{t('usage.commercial')}</option>
+            <option value="Industrial">{t('usage.industrial')}</option>
+            <option value="Agricultural">{t('usage.agricultural')}</option>
         </div>
 
         <button

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { NotificationProvider } from './components/Notifications/NotificationService';
 import { useCartTimer } from './hooks/useCartTimer';
 import { Home } from './pages/Home';
@@ -31,13 +32,15 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <NotificationProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </CartProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </CartProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </NotificationProvider>
   );
 }

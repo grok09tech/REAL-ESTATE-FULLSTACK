@@ -3,10 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -30,18 +33,21 @@ export const Navbar: React.FC = () => {
               to="/" 
               className="text-gray-700 hover:text-blue-600 transition-colors"
             >
-              Browse Plots
+              {t('nav.browse_plots')}
             </Link>
             <Link 
               to="/map" 
               className="text-gray-700 hover:text-blue-600 transition-colors"
             >
-              Map View
+              {t('nav.map_view')}
             </Link>
           </div>
 
           {/* Right Side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            {/* Language Selector */}
+            <LanguageSelector />
+            
             {user ? (
               <>
                 {/* Cart */}
@@ -72,7 +78,7 @@ export const Navbar: React.FC = () => {
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Dashboard
+                      {t('nav.dashboard')}
                     </Link>
                     
                     {(user.role === 'admin' || user.role === 'master_admin') && (
@@ -81,7 +87,7 @@ export const Navbar: React.FC = () => {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <Settings className="w-4 h-4 mr-2" />
-                        Admin Panel
+                        {t('nav.admin_panel')}
                       </Link>
                     )}
                     
@@ -90,7 +96,7 @@ export const Navbar: React.FC = () => {
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Logout
+                      {t('nav.logout')}
                     </button>
                   </div>
                 </div>
@@ -101,13 +107,13 @@ export const Navbar: React.FC = () => {
                   to="/login" 
                   className="text-gray-700 hover:text-blue-600 transition-colors"
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
                 <Link 
                   to="/register" 
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  Register
+                  {t('nav.register')}
                 </Link>
               </>
             )}
