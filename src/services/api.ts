@@ -69,9 +69,7 @@ class ApiService {
       });
     }
 
-    const response = await fetch(`${API_BASE_URL}/plots?${searchParams}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await fetch(`${API_BASE_URL}/plots?${searchParams}`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch plots');
@@ -81,9 +79,7 @@ class ApiService {
   }
 
   async getPlot(id: string): Promise<Plot> {
-    const response = await fetch(`${API_BASE_URL}/plots/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const response = await fetch(`${API_BASE_URL}/plots/${id}`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch plot');
@@ -133,6 +129,46 @@ class ApiService {
     return response.json();
   }
 
+  async updateOrderStatus(orderId: string, status: string): Promise<Order> {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ order_status: status }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update order status');
+    }
+
+    return response.json();
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ role }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update user role');
+    }
+
+    return response.json();
+  }
+
+  async getUsers(): Promise<User[]> {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+
+    return response.json();
+  }
+
   // Location endpoints
   async getRegions() {
     const response = await fetch(`${API_BASE_URL}/plots/locations/regions`);
@@ -151,6 +187,32 @@ class ApiService {
     const params = districtId ? `?district_id=${districtId}` : '';
     const response = await fetch(`${API_BASE_URL}/plots/locations/councils${params}`);
     if (!response.ok) throw new Error('Failed to fetch councils');
+    return response.json();
+  }
+
+  async lockPlot(plotId: string): Promise<Plot> {
+    const response = await fetch(`${API_BASE_URL}/plots/${plotId}/lock`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to lock plot');
+    }
+
+    return response.json();
+  }
+
+  async unlockPlot(plotId: string): Promise<Plot> {
+    const response = await fetch(`${API_BASE_URL}/plots/${plotId}/unlock`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to unlock plot');
+    }
+
     return response.json();
   }
 

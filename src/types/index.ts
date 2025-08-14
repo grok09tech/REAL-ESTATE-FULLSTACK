@@ -24,6 +24,7 @@ export interface Plot {
   uploaded_by_id?: string;
   created_at: string;
   council?: Council;
+  locked_until?: string; // For cart locking mechanism
 }
 
 export interface Region {

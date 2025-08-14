@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, Square, Eye, ShoppingCart } from 'lucide-react';
 import { Plot } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
+import { getStatusColor, getStatusText, isPlotAvailableForPurchase } from '../../utils/plotStatus';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -16,21 +17,8 @@ export const PlotCard: React.FC<PlotCardProps> = ({ plot, onViewDetails }) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(plot);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'locked':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'pending_payment':
-        return 'bg-red-100 text-red-800';
-      case 'sold':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
+    if (isPlotAvailableForPurchase(plot)) {
+      addToCart(plot);
     }
   };
 
@@ -53,7 +41,7 @@ export const PlotCard: React.FC<PlotCardProps> = ({ plot, onViewDetails }) => {
         {/* Status Badge */}
         <div className="absolute top-2 right-2">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(plot.status)}`}>
-            {plot.status.replace('_', ' ')}
+            {getStatusText(plot.status)}
           </span>
         </div>
       </div>
@@ -105,7 +93,7 @@ export const PlotCard: React.FC<PlotCardProps> = ({ plot, onViewDetails }) => {
             View Details
           </button>
           
-          {user && plot.status === 'available' && (
+          {user && isPlotAvailableForPurchase(plot) && (
             <button
               onClick={handleAddToCart}
               disabled={isInCart(plot.id)}

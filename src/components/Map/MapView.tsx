@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
+import React from 'react';
 import { Plot } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
-import 'leaflet/dist/leaflet.css';
 
 interface MapViewProps {
   plots: Plot[];
@@ -14,104 +11,38 @@ interface MapViewProps {
 
 export const MapView: React.FC<MapViewProps> = ({
   plots,
-  center = [-6.7924, 39.2083], // Dar es Salaam coordinates
+  center = [-6.7924, 39.2083],
   zoom = 10,
   onPlotClick,
 }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="w-full h-96 bg-gray-200 animate-pulse rounded-lg" />;
-  }
-
-  const convertGeomToLatLng = (geom: any): LatLngExpression[] => {
-    if (!geom || !geom.coordinates || !geom.coordinates[0]) {
-      return [];
-    }
-
-    // Convert GeoJSON polygon coordinates to Leaflet LatLng format
-    return geom.coordinates[0].map((coord: [number, number]) => [coord[1], coord[0]]);
-  };
-
-  const getPlotColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return '#10B981'; // Green
-      case 'locked':
-        return '#F59E0B'; // Orange
-      case 'pending_payment':
-        return '#EF4444'; // Red
-      case 'sold':
-        return '#6B7280'; // Gray
-      default:
-        return '#3B82F6'; // Blue
-    }
-  };
-
+  // Simple map placeholder for now - will be enhanced with actual map library
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      className="w-full h-96 rounded-lg shadow-md"
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      
-      {plots.map((plot) => {
-        if (!plot.geom) return null;
-        
-        const positions = convertGeomToLatLng(plot.geom);
-        if (positions.length === 0) return null;
-
-        return (
-          <Polygon
-            key={plot.id}
-            positions={positions}
-            pathOptions={{
-              fillColor: getPlotColor(plot.status),
-              fillOpacity: 0.6,
-              color: getPlotColor(plot.status),
-              weight: 2,
-            }}
-            eventHandlers={{
-              click: () => onPlotClick?.(plot),
-            }}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-gray-900">{plot.title}</h3>
-                <p className="text-sm text-gray-600">{plot.description}</p>
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm">
-                    <span className="font-medium">Area:</span> {plot.area_sqm.toLocaleString()} sqm
-                  </p>
-                  <p className="text-sm">
-                    <span className="font-medium">Price:</span> {formatCurrency(plot.price)}
-                  </p>
-                  <p className="text-sm">
-                    <span className="font-medium">Status:</span> 
-                    <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${
-                      plot.status === 'available' ? 'bg-green-100 text-green-800' :
-                      plot.status === 'locked' ? 'bg-yellow-100 text-yellow-800' :
-                      plot.status === 'pending_payment' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {plot.status.replace('_', ' ')}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </Popup>
-          </Polygon>
-        );
-      })}
-    </MapContainer>
+    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-green-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+      <div className="text-center p-8">
+        <div className="text-6xl mb-4">🗺️</div>
+        <h3 className="text-xl font-semibold text-gray-700 mb-2">Interactive Map</h3>
+        <p className="text-gray-600 mb-4">
+          Showing {plots.length} available plots in Tanzania
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+          {plots.slice(0, 4).map((plot) => (
+            <div
+              key={plot.id}
+              onClick={() => onPlotClick?.(plot)}
+              className="bg-white p-3 rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <h4 className="font-medium text-sm text-gray-900 truncate">{plot.title}</h4>
+              <p className="text-xs text-gray-600">{plot.area_sqm.toLocaleString()} sqm</p>
+              <p className="text-xs font-semibold text-blue-600">{formatCurrency(plot.price)}</p>
+            </div>
+          ))}
+        </div>
+        {plots.length > 4 && (
+          <p className="text-sm text-gray-500 mt-4">
+            +{plots.length - 4} more plots available
+          </p>
+        )}
+      </div>
+    </div>
   );
 };

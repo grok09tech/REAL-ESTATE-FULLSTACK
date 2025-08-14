@@ -2,6 +2,7 @@ import React from 'react';
 import { X, MapPin, Square, DollarSign, Calendar, User } from 'lucide-react';
 import { Plot } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
+import { getStatusColor, getStatusText, isPlotAvailableForPurchase } from '../../utils/plotStatus';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -22,21 +23,8 @@ export const PlotDetailsModal: React.FC<PlotDetailsModalProps> = ({
   if (!isOpen) return null;
 
   const handleAddToCart = () => {
-    addToCart(plot);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'locked':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'pending_payment':
-        return 'bg-red-100 text-red-800';
-      case 'sold':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
+    if (isPlotAvailableForPurchase(plot)) {
+      addToCart(plot);
     }
   };
 
@@ -94,7 +82,7 @@ export const PlotDetailsModal: React.FC<PlotDetailsModalProps> = ({
                   {formatCurrency(plot.price)}
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(plot.status)}`}>
-                  {plot.status.replace('_', ' ')}
+                  {getStatusText(plot.status)}
                 </span>
               </div>
 
@@ -164,7 +152,7 @@ export const PlotDetailsModal: React.FC<PlotDetailsModalProps> = ({
               )}
 
               {/* Actions */}
-              {user && plot.status === 'available' && (
+              {user && isPlotAvailableForPurchase(plot) && (
                 <div className="pt-4 border-t border-gray-200">
                   <button
                     onClick={handleAddToCart}
