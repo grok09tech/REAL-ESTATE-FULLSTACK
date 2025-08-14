@@ -65,9 +65,8 @@ export const AdminPanel: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      // This would need to be implemented in the API service
-      // For now, we'll leave it empty
-      console.log('User management not yet implemented');
+      const data = await apiService.getUsers();
+      setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
@@ -75,8 +74,8 @@ export const AdminPanel: React.FC = () => {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      // This would need to be implemented in the API service
-      console.log('Order status update not yet implemented');
+      await apiService.updateOrderStatus(orderId, status);
+      await fetchOrders(); // Refresh the orders list
     } catch (error) {
       console.error('Error updating order status:', error);
       alert('Failed to update order status');
@@ -85,8 +84,8 @@ export const AdminPanel: React.FC = () => {
 
   const updateUserRole = async (userId: string, role: string) => {
     try {
-      // This would need to be implemented in the API service
-      console.log('User role update not yet implemented');
+      await apiService.updateUserRole(userId, role);
+      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error updating user role:', error);
       alert('Failed to update user role');

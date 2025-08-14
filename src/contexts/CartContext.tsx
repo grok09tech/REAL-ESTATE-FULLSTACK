@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Plot, CartItem } from '../types';
+import { apiService } from '../services/api';
+import { useNotifications } from '../components/Notifications/NotificationService';
 
 interface CartContextType {
   items: CartItem[];
@@ -27,19 +29,66 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { addNotification } = useNotifications();
 
-  const addToCart = (plot: Plot) => {
+  const addToCart = async (plot: Plot) => {
     if (!isInCart(plot.id)) {
+      try {
+        // Lock the plot on the server
+        await apiService.lockPlot(plot.id);
+        
       setItems(prev => [...prev, { plot, addedAt: new Date() }]);
+        
+        addNotification({
+          type: 'success',
+          title: 'Plot Added to Cart',
+          message: `${plot.title} has been added to your cart. You have 15 minutes to complete the purchase.`
+        });
+      } catch (error) {
+        console.error('Error locking plot:', error);
+        addNotification({
+          type: 'error',
+          title: 'Unable to Add Plot',
+          message: 'This plot may have been purchased by another user.'
+        });
+      }
     }
   };
 
-  const removeFromCart = (plotId: string) => {
+  const removeFromCart = async (plotId: string) => {
+    try {
+      // Unlock the plot on the server
+      await apiService.unlockPlot(plotId);
+      
+      addNotification({
+        type: 'info',
+        title: 'Plot Removed',
+        message: 'Plot has been removed from your cart and is now available to other users.'
+      });
+    } catch (error) {
+      console.error('Error unlocking plot:', error);
+    }
+    
     setItems(prev => prev.filter(item => item.plot.id !== plotId));
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    // Unlock all plots in cart
+    for (const item of items) {
+      try {
+        await apiService.unlockPlot(item.plot.id);
+      } catch (error) {
+        console.error('Error unlocking plot:', error);
+      }
+    }
+    
     setItems([]);
+    
+    addNotification({
+      type: 'info',
+      title: 'Cart Cleared',
+      message: 'All plots have been removed from your cart.'
+    });
   };
 
   const isInCart = (plotId: string) => {

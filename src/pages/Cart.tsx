@@ -5,10 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { Trash2, ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 import { apiService } from '../services/api';
+import { useNotifications } from '../components/Notifications/NotificationService';
 
 export const Cart: React.FC = () => {
   const { items, removeFromCart, clearCart, totalPrice } = useCart();
   const { user } = useAuth();
+  const { addNotification } = useNotifications();
 
   const handleRemoveItem = (plotId: string) => {
     removeFromCart(plotId);
@@ -24,10 +26,18 @@ export const Cart: React.FC = () => {
       }
 
       clearCart();
-      alert('Orders created successfully! An admin will contact you shortly.');
+      addNotification({
+        type: 'success',
+        title: 'Orders Created Successfully!',
+        message: 'An admin will contact you shortly to complete the purchase process.'
+      });
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Failed to process checkout. Please try again.');
+      addNotification({
+        type: 'error',
+        title: 'Checkout Failed',
+        message: 'Failed to process checkout. Please try again.'
+      });
     }
   };
 

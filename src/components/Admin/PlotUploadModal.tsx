@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, MapPin } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { Region, District, Council } from '../../types';
+import { useNotifications } from '../Notifications/NotificationService';
 
 interface PlotUploadModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const PlotUploadModal: React.FC<PlotUploadModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { addNotification } = useNotifications();
   const [formData, setFormData] = useState<PlotFormData>({
     title: '',
     description: '',
@@ -126,17 +128,24 @@ export const PlotUploadModal: React.FC<PlotUploadModalProps> = ({
     setLoading(true);
 
     try {
-      await apiService.createPlot({
-        ...formData,
-        status: 'available'
-      });
+      await apiService.createPlot(formData);
 
+      addNotification({
+        type: 'success',
+        title: 'Plot Created Successfully',
+        message: `${formData.title} has been added to the platform.`
+      });
+      
       onSuccess();
       onClose();
       resetForm();
     } catch (error) {
       console.error('Error creating plot:', error);
-      alert('Failed to create plot. Please try again.');
+      addNotification({
+        type: 'error',
+        title: 'Failed to Create Plot',
+        message: 'Please check your input and try again.'
+      });
     } finally {
       setLoading(false);
     }
